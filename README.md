@@ -1,5 +1,8 @@
 # Szkolenie - C++20 #
 
+## Docs
+* https://infotraining.github.io/docs-cpp-20/intro.html
+
 ## Konfiguracja środowiska
 
 Proszę wybrać jedną z poniższych opcji:
