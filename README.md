@@ -4,6 +4,14 @@
 * https://infotraining.github.io/docs-cpp-20/intro.html
 * https://infotraining.bitbucket.io/cpp-20/
 
+## Video
+
+* https://infotrainingszkolenia-my.sharepoint.com/:v:/g/personal/krystian_piekos_infotraining_pl/EWudr8lxr6xGhUlawqdqpsUBW1cBrRBmRTC9E8rmYfVKJg?e=nt0He3&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D
+
+* https://infotrainingszkolenia-my.sharepoint.com/:v:/g/personal/krystian_piekos_infotraining_pl/ERJFm1CkvdhFktQnyzswbakBWQl_LysEUGmIneuSTzC1pw?e=Vly1f2&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D
+
+* https://infotrainingszkolenia-my.sharepoint.com/:v:/g/personal/krystian_piekos_infotraining_pl/EZMWz-7BF-9Mou4UJUZk83UBfXNTw83VmhLrPuAdys7rqw?e=po9u9f&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D
+
 ## Konfiguracja środowiska
 
 Proszę wybrać jedną z poniższych opcji:
