@@ -1,11 +1,11 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <compare>
 #include <iostream>
 #include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
-#include <compare>
 
 using namespace std::literals;
 
@@ -160,7 +160,7 @@ TEST_CASE("three-way-comparison <=>")
 
     SECTION("operators: < > <= >= are synthetized")
     {
-        CHECK(Number{10} < Number{20}); // operator< is synthetized: Number{10} <=> Number{20} < 0
+        CHECK(Number{10} < Number{20});  // operator< is synthetized: Number{10} <=> Number{20} < 0
         CHECK(Number{10} <= Number{20}); // (Number{10} <=> Number{20}) <= 0
     }
 
@@ -180,6 +180,9 @@ TEST_CASE("comparison categories")
 
         std::string str1 = "abc";
         CHECK(str1 <=> "abc"s == std::strong_ordering::equal);
+
+        std::tuple tpl1{1, "text"s};
+        CHECK(tpl1 <=> std::tuple{1, "text"s} == std::strong_ordering::equal);
     }
 
     SECTION("partial_ordering")
@@ -187,5 +190,177 @@ TEST_CASE("comparison categories")
         CHECK(3.14 <=> 4.13 == std::partial_ordering::less);
         CHECK(3.14 <=> 3.14 == std::partial_ordering::equivalent);
         CHECK(4.34 <=> std::numeric_limits<double>::quiet_NaN() == std::partial_ordering::unordered);
+
+        std::tuple tpl1{1.1, "text"s};
+
+        auto result = tpl1 <=> std::tuple{1.1, "text"s}; // std::partial_ordering::equivalent
+        CHECK(result == std::partial_ordering::equivalent);
     }
+}
+
+struct Temperature
+{
+    double value;
+
+    bool operator==(const Temperature& other) const = default;
+
+    std::strong_ordering operator<=>(const Temperature& other) const
+    {
+        return std::strong_order(value, other.value);
+    }
+};
+
+TEST_CASE("strong_order - custom operator<=>")
+{
+    auto result = Temperature{9.9} <=> Temperature{9.9};
+
+    CHECK(Temperature{9.0} == Temperature{9.0});
+}
+
+struct Human
+{
+    std::string name; // std::strong_ordering
+    uint8_t age;      // std::strong_ordering
+    double height;    // std::partial_ordering
+
+    auto tied() const
+    {
+        return std::tie(name, age);
+    }
+
+    bool operator==(const Human& other) const
+    {
+        // return name == other.name && age == other.age;
+        return tied() == other.tied();
+    }
+
+    std::strong_ordering operator<=>(const Human& other) const
+    {
+        // if (auto cmp_result = name <=> other.name; cmp_result == 0)
+        // {
+        //     return age <=> other.age;
+        // }
+        // else
+        // {
+        //     return cmp_result;
+        // }
+
+        return tied() <=> other.tied();
+    }
+};
+
+TEST_CASE("custom <=> - many fields")
+{
+    Human jan1{"Jan", 42, 1.77};
+    Human jan2{"Jan", 42, 1.87};
+
+    CHECK(jan1 == jan2);
+    CHECK(jan1 >= jan2);
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+struct CIString
+{
+    std::string str;
+
+    std::string to_upper_copy() const
+    {
+        std::string upper_str{str};
+        std::ranges::transform(upper_str, upper_str.begin(), [](auto c) { return std::toupper(c); });
+        return upper_str;
+    }
+
+    bool operator==(const CIString& other) const
+    {
+        return str == other.str;
+    }
+
+    std::weak_ordering operator<=>(const CIString& other) const
+    {
+        std::string upper_str_left = to_upper_copy();
+        std::string upper_str_right = other.to_upper_copy();
+
+        // if (upper_str_left == upper_str_right)
+        //     return std::weak_ordering::equivalent;
+        // if (upper_str_left < upper_str_right)
+        //     return std::weak_ordering::less;
+        // return std::weak_ordering::greater;
+
+        return upper_str_left <=> upper_str_right;
+    }
+};
+
+TEST_CASE("Case-Insensitive String")
+{
+    CIString str1{"one"};
+    CIString str2{"ONE"};
+
+    CHECK(str1 != str2);
+    CHECK((str1 <=> str2) == std::weak_ordering::equivalent);
+}
+
+struct Base
+{
+    std::string value;
+
+    bool operator==(const Base& other) const { return value == other.value; }
+    bool operator<(const Base& other) const { return value < other.value; }
+};
+
+struct Derived : Base
+{
+    std::vector<int> data;
+
+    std::strong_ordering operator<=>(const Derived& other) const = default;
+};
+
+TEST_CASE("default <=> - how it works")
+{
+    Derived d1{{"text"}, {1, 2, 3}};
+    Derived d2{{"text"}, {1, 2, 4}};
+
+    CHECK(d1 < d2);
+}
+
+struct Data
+{
+    int* buffer_;
+    std::size_t size_;
+
+public:
+    Data(std::initializer_list<int> lst)
+        : buffer_{new int[lst.size()]}
+        , size_{lst.size()}
+    {
+        std::ranges::copy(lst, buffer_);
+    }
+
+    Data(const Data&) = delete;
+    Data& operator=(const Data&) = delete;
+
+    ~Data()
+    {
+        delete[] buffer_;
+    }
+
+    bool operator==(const Data& other) const
+    {
+        return size_ == other.size_ && std::equal(buffer_, buffer_ + size_, other.buffer_);
+    }
+
+    auto operator<=>(const Data& other) const
+    {
+        return std::lexicographical_compare_three_way(buffer_, buffer_ + size_, other.buffer_, other.buffer_ + other.size_);
+    }
+};
+
+TEST_CASE("Data - comparisons")
+{
+    Data ds1{1, 2, 3};
+    Data ds2{1, 2, 3};
+    Data ds3{1, 2, 4};
+
+    CHECK(ds1 == ds2);
+    CHECK(ds1 < ds3);
 }
