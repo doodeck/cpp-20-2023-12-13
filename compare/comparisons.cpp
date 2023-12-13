@@ -1,9 +1,11 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
 #include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
+#include <compare>
 
 using namespace std::literals;
 
@@ -55,8 +57,10 @@ struct Point
 {
     int x, y;
 
-    Point(int x = 0, int y = 0) : x{x}, y{y}
-    {}
+    Point(int x = 0, int y = 0)
+        : x{x}
+        , y{y}
+    { }
 
     bool operator==(const Point& other) const = default;
 };
@@ -65,8 +69,10 @@ struct NamedPoint : Point
 {
     std::string name;
 
-    NamedPoint(int x = 0, int y = 0, std::string name = "not-set") : Point{x, y}, name{std::move(name)}
-    {}
+    NamedPoint(int x = 0, int y = 0, std::string name = "not-set")
+        : Point{x, y}
+        , name{std::move(name)}
+    { }
 
     bool operator==(const NamedPoint& npt) const = default;
 };
@@ -87,4 +93,99 @@ TEST_CASE("operator ==")
     CHECK(named_pt != NamedPoint{0, 0});
 
     CHECK(named_pt == Point{0, 0}); // works with base class
+}
+
+/////////////////////////////////////////////////////////////////////
+
+struct Number
+{
+    int value;
+
+    Number(int v)
+        : value{v}
+    { }
+
+    // bool operator==(const Number& other) const = default; // implicitly declared when <=> is defaulted
+
+    auto operator<=>(const Number& other) const = default; // -> strong_ordering deduced
+};
+
+struct FloatNumber
+{
+    float value;
+
+    FloatNumber(float v)
+        : value{v}
+    { }
+
+    auto operator<=>(const FloatNumber& other) const = default; // -> partial_ordering
+
+    std::partial_ordering operator<=>(const Number& other) const
+    {
+        return value <=> other.value;
+    }
+};
+
+TEST_CASE("defining order")
+{
+    std::vector<Number> numbers = {Number{10}, 20, -5, 42, 665, 8};
+
+    std::ranges::sort(numbers);
+
+    Number n{42};
+    CHECK(n == Number{42});
+    CHECK(42 == n);
+    CHECK(n != Number{665});
+    CHECK(n < Number{665});
+    CHECK(n > Number{6});
+    CHECK(n >= Number{6});
+    CHECK(n <= Number{42});
+
+    CHECK(Number{10} <=> Number{10} == 0);
+
+    bool result = Number{1} <=> Number{10} < 0;
+    CHECK(result);
+    CHECK((Number{10} <=> Number{1}) > 0);
+
+    CHECK((Number{10} <=> FloatNumber{20}) == std::partial_ordering::less);
+}
+
+TEST_CASE("three-way-comparison <=>")
+{
+    SECTION("result is a comparison category")
+    {
+        auto result = Number{10} <=> Number{20};
+        static_assert(std::is_same_v<decltype(result), std::strong_ordering>);
+    }
+
+    SECTION("operators: < > <= >= are synthetized")
+    {
+        CHECK(Number{10} < Number{20}); // operator< is synthetized: Number{10} <=> Number{20} < 0
+        CHECK(Number{10} <= Number{20}); // (Number{10} <=> Number{20}) <= 0
+    }
+
+    SECTION("int <=> double - implicit conversion")
+    {
+        auto result = 4 <=> 4.14;
+    }
+}
+
+TEST_CASE("comparison categories")
+{
+    SECTION("strong_ordering")
+    {
+        CHECK(4 <=> 5 == std::strong_ordering::less);
+        CHECK(4 <=> 4 == std::strong_ordering::equal);
+        CHECK(5 <=> 4 == std::strong_ordering::greater);
+
+        std::string str1 = "abc";
+        CHECK(str1 <=> "abc"s == std::strong_ordering::equal);
+    }
+
+    SECTION("partial_ordering")
+    {
+        CHECK(3.14 <=> 4.13 == std::partial_ordering::less);
+        CHECK(3.14 <=> 3.14 == std::partial_ordering::equivalent);
+        CHECK(4.34 <=> std::numeric_limits<double>::quiet_NaN() == std::partial_ordering::unordered);
+    }
 }
