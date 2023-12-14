@@ -1,11 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <iostream>
+#include <numbers>
+#include <numeric>
 #include <span>
 #include <string>
 #include <vector>
+
+#ifdef __cpp_lib_format
 #include <format>
-#include <numbers>
-#include <numeric>
+#endif
 
 using namespace std::literals;
 
@@ -43,7 +46,7 @@ TEST_CASE("std::span - api")
 {
     int native_array[10] = {1, 2, 3, 4, 5};
     std::vector<int> vec = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    
+
     SECTION("subspan")
     {
 
@@ -67,25 +70,27 @@ TEST_CASE("std::span - api")
         print(span_view);
 
         span_view = std::span(native_array, 5);
-        print(span_view); 
+        print(span_view);
     }
 }
 
 void print_as_bytes(const float f, const std::span<const std::byte> bytes)
 {
+#ifdef __cpp_lib_format
     std::cout << std::format("{:+6}", f) << " - { ";
-    
-    for(std::byte b : bytes)
+
+    for (std::byte b : bytes)
     {
         std::cout << std::format("{:02X} ", std::to_integer<int>(b));
     }
 
     std::cout << "}\n";
+#endif
 }
 
 TEST_CASE("span of bytes")
 {
-    float data[] = { std::numbers::pi_v<float> };
+    float data[] = {std::numbers::pi_v<float>};
 
     std::span<const std::byte> const_bytes = std::as_bytes(std::span{data});
     print_as_bytes(data[0], const_bytes);
@@ -106,7 +111,7 @@ TEST_CASE("subspans")
 
     std::cout << "\n";
 
-    for(size_t row = 0; row < vec.size() / col_size; ++row)
+    for (size_t row = 0; row < vec.size() / col_size; ++row)
     {
         auto row_data = std::span{vec}.subspan(row * col_size, col_size);
 
@@ -127,5 +132,5 @@ TEST_CASE("dangling pointers with span")
     print(head);
 
     vec.push_back(6);
-    //print(head); // UB
+    // print(head); // UB
 }

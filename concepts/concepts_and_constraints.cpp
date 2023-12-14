@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <memory>
 
 using namespace std::literals;
 
