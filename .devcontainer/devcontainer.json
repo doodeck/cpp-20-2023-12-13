@@ -11,7 +11,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	//"postCreateCommand": "vcpkg install catch2 fmt",
+	//"postCreateCommand": "vcpkg install catch2",
 
 	// Configure tool-specific properties.
 	"customizations": {
@@ -23,7 +23,7 @@
 				"matepek.vscode-catch2-test-adapter"
 	 		]
 	 	}
-	},
+	}
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	"remoteUser": "root"
+	//"remoteUser": "root"
 }

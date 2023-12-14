@@ -1,4 +1,4 @@
-FROM infotrainingdev/cpp20-gcc:latest
+FROM infotrainingdev/gcc13-clang17-cmake328-vcpkg:latest
 
 WORKDIR /root
 
