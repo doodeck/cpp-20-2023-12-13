@@ -5,6 +5,7 @@
 #include <numeric>
 #include <string>
 #include <vector>
+#include <set>
 
 using namespace std::literals;
 
@@ -295,3 +296,102 @@ TEST_CASE("sum with concepts")
     std::vector<std::string> words = {"abc", "def"};
     sum(words);
 }
+
+template <typename TItem>
+void add_to_container(auto& container, TItem&& item)
+{
+    if constexpr(requires { container.push_back(std::forward<TItem>(item)); })
+        container.push_back(std::forward<TItem>(item));
+    else
+        container.insert(std::forward<TItem>(item));
+}
+
+TEST_CASE("add to container")
+{
+    std::vector<int> vec = {1, 2, 3};
+    add_to_container(vec, 4);
+
+    std::set<int> my_set = {1, 2, 3};
+    add_to_container(my_set, 4);
+}
+
+/////////////////////////////////////////////////////////////////////
+// concept subsumation
+
+//////////////////////////////////////////////
+// concept subsumation
+
+struct BoundingBox
+{
+    int w, h;
+};
+
+struct Color
+{
+    uint8_t r, g, b;
+};
+
+template <typename T>
+concept Shape = requires(const T& obj)
+{
+    { obj.box() } noexcept -> std::same_as<BoundingBox>;
+    obj.draw();
+};
+
+template <typename T>
+concept ShapeWithColor = Shape<T>
+ && requires(T&& obj, Color c) { // ShapeWithColor subsumes Shape
+    obj.set_color(c);
+    { obj.get_color() } noexcept -> std::same_as<Color>;
+};
+
+struct Rect
+{
+    int w, h;
+    Color color;
+
+    void draw() const
+    {
+        std::cout << "Rect::draw()\n";
+    }
+
+    BoundingBox box() const noexcept
+    {
+        return BoundingBox{w, h};
+    }
+
+    Color get_color() const noexcept
+    {
+        return color;
+    }
+
+    void set_color(Color new_color)
+    {
+        color = new_color;
+    }
+};
+
+static_assert(Shape<Rect>);
+static_assert(ShapeWithColor<Rect>);
+
+template <Shape T>
+void render(T& shp)
+{
+    std::cout << "render<Shape T>\n";
+    shp.draw();
+}
+
+template <ShapeWithColor T>
+void render(T& shp)
+{
+    std::cout << "render<ShapeWithColor T>\n";
+    shp.set_color(Color{0, 0, 0});
+    shp.draw();
+}
+
+TEST_CASE("concept subsumation")
+{
+    Rect rect{10, 200};
+    render(rect);
+}
+
