@@ -141,11 +141,12 @@ TEST_CASE("defining order")
     CHECK(n >= Number{6});
     CHECK(n <= Number{42});
 
-    CHECK(Number{10} <=> Number{10} == 0);
 
-    bool result = Number{1} <=> Number{10} < 0;
+    CHECK((Number{10} <=> Number{10} == 0));
+
+    bool result = (Number{1} <=> Number{10}) < 0;
     CHECK(result);
-    CHECK((Number{10} <=> Number{1}) > 0);
+    CHECK((Number{10} <=> Number{1} > 0));
 
     CHECK((Number{10} <=> FloatNumber{20}) == std::partial_ordering::less);
 }
