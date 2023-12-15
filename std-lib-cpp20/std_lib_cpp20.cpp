@@ -5,6 +5,7 @@
 #include <span>
 #include <string>
 #include <vector>
+#include <bit>
 
 #ifdef __cpp_lib_format
 #include <format>
@@ -133,4 +134,58 @@ TEST_CASE("dangling pointers with span")
 
     vec.push_back(6);
     // print(head); // UB
+}
+
+///////////////////////////////////////////////////////////
+// Aggregates
+
+struct Person
+{
+    int id;
+    std::string name;
+    double salary;
+
+    auto operator<=>(const Person& other) const = default;
+};
+
+#include <source_location>
+ 
+template <typename T>
+void foo_location(T value)
+{
+    auto sl = std::source_location::current();
+ 
+    std::cout << "file: " << sl.file_name() << "\n";
+    std::cout << "function: " << sl.function_name() << "\n";
+    std::cout << "line/col: " << sl.line() << "\n";
+}
+
+TEST_CASE("aggregates")
+{
+    Person p1{10, "", 4000.0};
+    Person p2{.id=10, .salary=5000.0};
+    //Person p3{.salary=5000.0, .id=10};
+
+    Person p3(10, "Jan", 10000.0);
+    auto ptr = std::make_shared<Person>(10, "Adam", 10'000.0);
+
+    foo_location(42);
+}
+
+template <size_t N>
+concept BufferSize = std::has_single_bit(N);
+
+static_assert(BufferSize<1024>);
+static_assert(!BufferSize<665>);
+
+template <typename T, size_t N>
+    requires BufferSize<N>
+struct Array
+{
+    T items[N];
+};
+
+TEST_CASE("Array")
+{
+    Array<int, 1024> less_evil{};
 }
