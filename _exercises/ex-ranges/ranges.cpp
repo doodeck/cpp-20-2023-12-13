@@ -1,13 +1,13 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <map>
-#include <unordered_map>
-#include <set>
-#include <list>
-#include <source_location>
-#include <ranges>
 #include <helpers.hpp>
+#include <iostream>
+#include <list>
+#include <map>
+#include <ranges>
+#include <set>
+#include <source_location>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 template <typename T1, typename T2>
 std::ostream& operator<<(std::ostream& out, const std::pair<T1, T2>& p)
@@ -50,10 +50,12 @@ TEST_CASE("split")
 
 TEST_CASE("Exercise - ranges")
 {
-    const std::vector<std::string_view> lines = {
+    std::vector<std::string_view> lines = {
         "# Comment 1",
         "# Comment 2",
         "# Comment 3",
+        "\n",
+        "\n",
         "1/one",
         "2/two",
         "\n",
@@ -62,16 +64,21 @@ TEST_CASE("Exercise - ranges")
         "5/five",
         "\n",
         "\n",
-        "6/six"
-    };
+        "6/six"};
 
     helpers::print(lines, "lines");
 
-    auto result = lines;
-
-    helpers::print(result, "result");
+    auto result = std::views::counted(lines.begin(), lines.size())
+        | std::views::drop_while([](std::string_view str) { return str.starts_with("#"); })
+        | std::views::filter([](std::string_view str) { return str != "\n"; })
+        | std::views::transform([](std::string_view str) { return split(str).second; });
+        // | std::ranges::to<std::vector>(); // C++23
 
     auto expected_result = {"one"s, "two"s, "three"s, "four"s, "five"s, "six"s};
+    CHECK(std::ranges::equal(result, expected_result));
 
-    //CHECK(std::ranges::equal(result, expected_result));
+    auto common_it_wrapper = std::views::common(result);
+    std::vector<std::string_view> result_vec(common_it_wrapper.begin(), common_it_wrapper.end());
+
+    helpers::print(result_vec, "result_vec");
 }
