@@ -38,6 +38,11 @@ target_sources(drawing_lib
     Shapes-Rectangle.cxx
 )
 
+target_sources(drawing_lib
+  PRIVATE
+  Shapes-Square.cpp
+)
+
 target_link_libraries(drawing_lib PUBLIC factory_lib)
 
 add_executable(drawing_app DrawingApp.cpp)
