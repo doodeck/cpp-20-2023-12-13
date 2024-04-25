@@ -108,6 +108,11 @@ struct Number
     // bool operator==(const Number& other) const = default; // implicitly declared when <=> is defaulted
 
     auto operator<=>(const Number& other) const = default; // -> strong_ordering deduced
+
+    auto val() const
+    {
+        return this->value;
+    }
 };
 
 struct FloatNumber
@@ -132,6 +137,9 @@ TEST_CASE("defining order")
 
     std::ranges::sort(numbers);
 
+    for (auto number : numbers) {
+        std::cout << number.val() << "\n";
+    }
     Number n{42};
     CHECK(n == Number{42});
     CHECK(42 == n);
@@ -250,13 +258,32 @@ struct Human
     }
 };
 
+struct Human2
+{
+    std::string name; // std::strong_ordering
+    uint8_t age;      // std::strong_ordering
+    double height;    // std::partial_ordering
+
+    auto operator<=>(const Human2& other) const = default;
+};
+
 TEST_CASE("custom <=> - many fields")
 {
+    {
     Human jan1{"Jan", 42, 1.77};
     Human jan2{"Jan", 42, 1.87};
 
     CHECK(jan1 == jan2);
     CHECK(jan1 >= jan2);
+    }
+
+    {
+    Human2 jan1{"Jan", 42, 1.77};
+    Human2 jan2{"Jan", 42, 1.87};
+
+    CHECK(jan1 != jan2);
+    CHECK(jan1 <= jan2);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -321,7 +348,7 @@ TEST_CASE("default <=> - how it works")
     Derived d1{{"text"}, {1, 2, 3}};
     Derived d2{{"text"}, {1, 2, 4}};
 
-    CHECK(d1 < d2);
+    CHECK(d1 < d2); // generated operator < from Derived, Base::< apparently ignored
 }
 
 struct Data

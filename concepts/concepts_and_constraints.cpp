@@ -295,7 +295,7 @@ TEST_CASE("sum with concepts")
     CHECK(sum(vec) == 6);
 
     std::vector<std::string> words = {"abc", "def"};
-    sum(words);
+    CHECK(sum(words) == "abcdef"s);
 }
 
 template <typename TItem>
